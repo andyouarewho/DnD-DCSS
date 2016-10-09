@@ -7,6 +7,8 @@ import random
 
 SCREEN_WIDTH = 80
 SCREEN_HEIGHT = 60
+MIN_ROOM_SIZE = 3
+MAX_ROOM_SIZE = 20
 LIMIT_FPS = 20
 BG_COLOR = libtcod.darkest_gray
 FG_COLOR = libtcod.lightest_gray
@@ -41,14 +43,35 @@ def controls():
 #    if libtcod.console_is_key_pressed(libtcod.KEY_ESCAPE):
         return True
     if this.vk == libtcod.KEY_ENTER:
+        make_map()
 #    if libtcod.console_is_key_pressed(libtcod.KEY_ENTER):
-        for _ in range(10):
-            newRoom = Rect(random.randint(1, SCREEN_WIDTH), random.randint(1, SCREEN_HEIGHT), random.randint(3, 10), random.randint(3, 10))
-            if newRoom.x2 < SCREEN_HEIGHT and newRoom.y2 < SCREEN_HEIGHT:
+        for _ in range(20):
+            newRoom = Rect(random.randint(1, SCREEN_WIDTH), random.randint(1, SCREEN_HEIGHT), random.randint(MIN_ROOM_SIZE, MAX_ROOM_SIZE), random.randint(MIN_ROOM_SIZE, MAX_ROOM_SIZE))
+            if newRoom.x2 < SCREEN_WIDTH and newRoom.y2 < SCREEN_HEIGHT:
                 for x in range(newRoom.x1, newRoom.x2):
                     for y in range(newRoom.y1, newRoom.y2):
                         map[x][y].block_sight = False
                         map[x][y].blocked = False
+                        # render test center tile DELETE EVERYTHING AFTER THIS
+                        map[newRoom.centerx][newRoom.centery].block_sight = True
+                        map[newRoom.centerx][newRoom.centery].blocked = True
+                        map[newRoom.centerx + 1][newRoom.centery + 1].block_sight = True
+                        map[newRoom.centerx + 1][newRoom.centery + 1].blocked = True
+                        map[newRoom.centerx - 1][newRoom.centery - 1].block_sight = True
+                        map[newRoom.centerx - 1][newRoom.centery - 1].blocked = True
+                        map[newRoom.centerx + 1][newRoom.centery - 1].block_sight = True
+                        map[newRoom.centerx + 1][newRoom.centery - 1].blocked = True
+                        map[newRoom.centerx - 1][newRoom.centery + 1].block_sight = True
+                        map[newRoom.centerx - 1][newRoom.centery + 1].blocked = True
+                        map[newRoom.centerx][newRoom.centery + 1].block_sight = True
+                        map[newRoom.centerx][newRoom.centery + 1].blocked = True
+                        map[newRoom.centerx][newRoom.centery - 1].block_sight = True
+                        map[newRoom.centerx][newRoom.centery - 1].blocked = True
+                        map[newRoom.centerx + 1][newRoom.centery].block_sight = True
+                        map[newRoom.centerx + 1][newRoom.centery].blocked = True
+                        map[newRoom.centerx - 1][newRoom.centery].block_sight = True
+                        map[newRoom.centerx - 1][newRoom.centery].blocked = True
+
         render_all()
 
 
@@ -73,12 +96,13 @@ def render_all(): # draw to the screen
 
 # define a room class
 class Rect:
-    def __init__(self, x, y, w, h):
+    def __init__(self, x, y, w, h, centerx = None, centery = None):
         self.x1 = x
         self.y1 = y
         self.x2 = x + w
         self.y2 = y + h
-        center = ((x + w)/2, ((y + h)/2))
+        self.centerx = int((self.x2 - self.x1) / 2 + self.x1)
+        self.centery = int((self.y2 - self.y1) / 2 + self.y1)
 # define a tile class (a cell in the X, Y grid/array)
 class Tile:
     def __init__(self, blocked, block_sight = None):
