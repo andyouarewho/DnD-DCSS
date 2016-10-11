@@ -63,24 +63,24 @@ def make_map():
 def basic_map_generator():
     rooms = []
     num_rooms = 0
+    iterations = 0
     while num_rooms < MAX_ROOMS:
+        iterations += 1 # make me incapable of breaking based on max room size
+        if iterations > 1000:
+            break
         h = random.randint(ROOM_MIN_SIZE, ROOM_MAX_SIZE)
         w = random.randint(ROOM_MIN_SIZE, ROOM_MAX_SIZE)
         x = random.randint(1, SCREEN_WIDTH - w - 1)
         y = random.randint(1, SCREEN_HEIGHT - h - 1)
+        newRoom = Rect(x, y, w, h)
         if num_rooms == 0:
-            newRoom = Rect(x, y, w, h)
             create_room(newRoom)
             entrance.x = newRoom.centerx
             entrance.y = newRoom.centery
             rooms.append(newRoom)
             num_rooms += 1
         else:
-            newRoom = Rect(x, y, w, h)
-            other_room = rooms[num_rooms - 1]
-            if newRoom.intersect(other_room):
-                continue
-            else:
+            if not newRoom.intersects(rooms):
                 create_room(newRoom)
                 prev_x = rooms[num_rooms - 1].centerx
                 prev_y = rooms[num_rooms - 1].centery
@@ -99,10 +99,12 @@ def basic_map_generator():
         exit.x = rooms[MAX_ROOMS - 1].centerx
         exit.y = rooms[MAX_ROOMS - 1].centery
 
+
+
 def create_room(room):
     global map
-    for x in range(room.x1, room.x2):
-        for y in range(room.y1, room.y2):
+    for x in range(room.x1 + 1, room.x2):
+        for y in range(room.y1 + 1, room.y2):
             map[x][y].blocked = False
             map[x][y].block_sight = False
 
@@ -137,10 +139,15 @@ class Rect:
         self.y1 = y
         self.x2 = x + w
         self.y2 = y + h
-        self.centerx = int((self.x2 - self.x1) / 2 + self.x1)
-        self.centery = int((self.y2 - self.y1) / 2 + self.y1)
+        self.centerx = int((self.x1 + self.x2) / 2)
+        self.centery = int((self.y1 + self.y2) / 2)
     def intersect(self, other):
         return (self.x1 <= other.x2 and self.x2 >= other.x1 and self.y1 <= other.y2 and self.y2 >= other.y1)
+    def intersects(self, others):
+        for other_room in others:
+            if self.intersect(other_room):
+                return True
+        return False
 
 # define a tile class (a cell in the X, Y grid/array)
 class Tile:
