@@ -1,5 +1,8 @@
-import libtcodpy as libtcod
+"""Generate a random dungeon for the game."""
+
 import random
+
+import tdl
 
 #####################
 ### CONSOLE STUFF ###
@@ -11,54 +14,52 @@ MAX_ROOMS = 6
 ROOM_MIN_SIZE = 5
 ROOM_MAX_SIZE = 12
 LIMIT_FPS = 20
-BG_COLOR = libtcod.darkest_gray
-FG_COLOR = libtcod.lightest_gray
-
-loremipsum = """
+BG_COLOR = (30, 30, 30)
+FG_COLOR = (200, 200, 200)
+LOREM_IPSUM = """
     Lorem ipsum dolor sit amet, metus rutrum non libero ultrices pharetra,
-euismod quam lacus semper accumsan. Nunc maecenas cum, vestibulum mattis,
-mauris viverra malesuada orci proin, ut etiam magna at vestibulum nec sit.
-Tristique eu ut porttitor porta tristique maecenas. Vulputate orci, tincidunt
-ut curae sed mauris feugiat, sed dolor wisi pede consectetuer montes.
-Ut luctus, enim praesent, fringilla porta maecenas. Rutrum sit est diam ut,
-etiam metus, risus felis aliquam tellus, elit neque tincidunt vitae, mollis eu.
+    euismod quam lacus semper accumsan. Nunc maecenas cum, vestibulum mattis,
+    mauris viverra malesuada orci proin, ut etiam magna at vestibulum nec sit.
+    Tristique eu ut porttitor porta tristique maecenas. Vulputate orci, tincidunt
+    ut curae sed mauris feugiat, sed dolor wisi pede consectetuer montes.
+    Ut luctus, enim praesent, fringilla porta maecenas. Rutrum sit est diam ut,
+    etiam metus, risus felis aliquam tellus, elit neque tincidunt vitae, mollis eu.
 
-    Nullam mi urna rutrum pulvinar, mollis nulla wisi aliquam elit, nisl quam
-ullamcorper rutrum risus arcu metus, potenti lectus in, vestibulum lacinia
-condimentum quis. Aliquam etiam id a lorem amet lacus, dolor curabitur lectus,
-magna lectus auctor et varius, arcu arcu, orci donec vitae et magna torquent
-sit. Mi quam, pede imperdiet auctor libero maecenas sed at, interdum proin sit
-libero ac vestibulum. Ac orci, euismod bibendum a, convallis vel, nunc dui eget
-malesuada volutpat. In vestibulum sit scelerisque, nulla in nec purus nunc
-nulla, diam magni ea eum ante proin, sit ut viverra, lacinia turpis ut.
+        Nullam mi urna rutrum pulvinar, mollis nulla wisi aliquam elit, nisl quam
+    ullamcorper rutrum risus arcu metus, potenti lectus in, vestibulum lacinia
+    condimentum quis. Aliquam etiam id a lorem amet lacus, dolor curabitur lectus,
+    magna lectus auctor et varius, arcu arcu, orci donec vitae et magna torquent
+    sit. Mi quam, pede imperdiet auctor libero maecenas sed at, interdum proin sit
+    libero ac vestibulum. Ac orci, euismod bibendum a, convallis vel, nunc dui eget
+    malesuada volutpat. In vestibulum sit scelerisque, nulla in nec purus nunc
+    nulla, diam magni ea eum ante proin, sit ut viverra, lacinia turpis ut.
 """
-teststring = """
-This is a test string in order to test things.
-"""
-
 
 # temp function for input
 def controls():
-    this = libtcod.console_check_for_keypress(True) # wait for keypress
-    if this.vk == libtcod.KEY_ESCAPE: # quit game
+    this = tdl.event.key_wait() # wait for keypress
+
+    if this.key == 'ESCAPE': # quit game
         return True
-    elif this.vk == libtcod.KEY_0: # fullscreen mode
-        libtcod.console_set_fullscreen(not libtcod.console_is_fullscreen())
-    if this.vk == libtcod.KEY_ENTER:
+    elif this.key == '0': # fullscreen mode
+        tdl.console_set_fullscreen(not tdl.console_is_fullscreen())
+    if this.key == 'ENTER':
         make_map() # resets console so each enter key is a new map
         basic_map_generator() # dungeon generator code
         render_all() # draw current rendition of map
-        for object in objects:
-            object.clear # clears all objects
-        for object in objects:
-            object.draw() # draws all objects
+        for obj in GAME_OBJECTS:
+            obj.clear() # clears all GAME_OBJECTS
+        for obj in GAME_OBJECTS:
+            obj.draw() # draws all GAME_OBJECTS
 
 # Make the game map array
 def make_map():
+    """Make the game map array."""
     global map
     map = [[Tile(True) # magic! Make a list of classes inside a list.
             for y in range(SCREEN_HEIGHT)]
                 for x in range(SCREEN_WIDTH)]
+
 
 def basic_map_generator():
     rooms = []
@@ -100,7 +101,6 @@ def basic_map_generator():
         exit.y = rooms[MAX_ROOMS - 1].centery
 
 
-
 def create_room(room):
     global map
     for x in range(room.x1 + 1, room.x2):
@@ -108,11 +108,13 @@ def create_room(room):
             map[x][y].blocked = False
             map[x][y].block_sight = False
 
+
 def create_h_tunnel(y, x1, x2):
     global map
     for x in range(min(x1, x2), max(x1, x2) + 1):
         map[x][y].blocked = False
         map[x][y].block_sight = False
+
 
 def create_v_tunnel(x, y1, y2):
     global map
@@ -120,20 +122,21 @@ def create_v_tunnel(x, y1, y2):
         map[x][y].blocked = False
         map[x][y].block_sight = False
 
-def render_all(): # draw to the screen
-    libtcod.console_clear(0)
+
+def render_all():
+    """draw to the screen"""
+    CONSOLE.clear()
     for y in range(SCREEN_HEIGHT):
         for x in range(SCREEN_WIDTH):
             wall = map[x][y].block_sight
             if wall:
-                libtcod.console_set_char_background(0, x, y, libtcod.darkest_gray)
+                CONSOLE.draw_char(x, y, 'X', fg=FG_COLOR)
             else:
-                libtcod.console_set_char_background(0, x, y, libtcod.dark_gray)
+                CONSOLE.draw_char(x, y, ' ', fg=BG_COLOR)
 
 
-
-# define a room class
 class Rect:
+    """define a room class"""
     def __init__(self, x, y, w, h):
         self.x1 = x
         self.y1 = y
@@ -149,41 +152,49 @@ class Rect:
                 return True
         return False
 
-# define a tile class (a cell in the X, Y grid/array)
+
 class Tile:
+    """define a tile class (a cell in the X, Y grid/array)"""
     def __init__(self, blocked, block_sight = None):
         self.blocked = blocked
         self.block_sight = block_sight
         if self.block_sight is None:
             self.block_sight = blocked
+    def __repr__(self):
+        return '<Tile blocked={}>'.format(self.blocked)
 
-# define any object, player, npc, monster, item, etc.
-class Object:
-    def __init__(self, x, y, char, color):
+
+class GameObject:
+    """define any object, player, npc, monster, item, etc."""
+    def __init__(self, x, y, char, color=None):
         self.x = x
         self.y = y
         self.char = char
         self.color = color
     def draw(self):
-        libtcod.console_set_default_foreground(0, self.color)
-        libtcod.console_put_char(0, self.x, self.y, self.char, libtcod.BKGND_NONE)
+        CONSOLE.set_colors(fg=self.color)
+        CONSOLE.draw_char(self.x, self.y, self.char)
     def clear(self):
-        libtcod.console_put_char(0, self.x, self.y, ' ', libtcod.BKGND_NONE)
+        CONSOLE.draw_char(self.x, self.y, ' ')
 
 
 ### Pre Game Init/Console Stuff ###
-libtcod.console_set_custom_font('mann.png', libtcod.FONT_TYPE_GREYSCALE | libtcod.FONT_LAYOUT_TCOD) # set console font
-libtcod.console_init_root(SCREEN_WIDTH, SCREEN_HEIGHT, 'mann_game', False) # initialize the window with attributes (width, height, title, fullscreen boolean)
-libtcod.console_set_default_background(0, BG_COLOR) # default background is black but you can change it
-libtcod.console_set_default_foreground(0, FG_COLOR) # default foreground is white but you can change it
-libtcod.console_clear(0) # clear console so BG/FG colors can change
-libtcod.console_print(0, 0, 0, loremipsum) # print test string for font preview CAN DELETE ME
+# TODO -- get this font to work again
+# tdl.set_font('mann.png', rows=32, columns=7) # set console font
+
+CONSOLE = tdl.init(SCREEN_WIDTH, SCREEN_HEIGHT, title='mann_game')
+CONSOLE.set_colors(fg=FG_COLOR, bg=BG_COLOR)
+CONSOLE.clear() # clear console so BG/FG colors can change
+CONSOLE.move(0, 0)
+CONSOLE.print_str(LOREM_IPSUM) # TODO -- get this working again
+
 make_map() # this is the shit right here -- this is the game world
-entrance = Object(0, 0, '<', libtcod.lime)
-exit = Object(0, 1, '>', libtcod.lime)
-objects = [entrance, exit]
+entrance = GameObject(0, 0, '<')
+exit = GameObject(0, 1, '>')
+GAME_OBJECTS = [entrance, exit]
+
 ### MAIN GAME LOOP MOTHERFUCKER ###
-while not libtcod.console_is_window_closed():
-    libtcod.console_flush()
-    if controls() == True: # can simplify but only here to clarify logic of statment
+while True:
+    tdl.flush()
+    if controls() == True:
         break
