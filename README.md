@@ -1,6 +1,6 @@
 # DnD-DCSS
 A dungeon crawl game.
 
-Basic dungeon generator complete.
-
-Basic character generator complete.
+10/11/16
+ - Basic dungeon generator complete.
+ - Basic character generator complete.
